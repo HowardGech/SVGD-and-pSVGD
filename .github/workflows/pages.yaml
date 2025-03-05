@@ -1,8 +1,8 @@
-name: Deploy from gh-pages
+name: Deploy Hugo Site
 
 on:
   push:
-    branches: [ "gh-pages" ] # Only monitor non-default branch
+    branches: ["gh-pages"]
 
 permissions:
   contents: read
@@ -19,6 +19,10 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v4  # ← Critical for URL detection
+
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
@@ -26,18 +30,13 @@ jobs:
           extended: true
 
       - name: Build
-        run: hugo --gc --minify
+        run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./public
 
   deploy:
     needs: build
-    permissions:
-      pages: write
-      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Deploy
